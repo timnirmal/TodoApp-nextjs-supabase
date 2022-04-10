@@ -24,6 +24,7 @@ const Home = () => {
     }
   }, [user, router]);
 
+  // Get all todos when component mounts
   useEffect(() => {
     if (user) {
       supabaseClient
@@ -39,6 +40,7 @@ const Home = () => {
     }
   }, [user]);
 
+  // Realtime Subscription
   useEffect(() => {
     const todoListener = supabaseClient
       .from("todos")
