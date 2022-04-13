@@ -52,11 +52,18 @@ const Profile = () => {
       .from("profiles")
       .update(body)
       .eq("id", userId);
+    const { e } = await supabaseClient
+        .from("emp")
+        .update(body)
+        .eq("id", userId);
     if (!error) {
       setUsername(body.username);
       setWebsite(body.website);
       setBio(body.bio);
     }
+
+
+
     setIsLoading(false);
   };
 

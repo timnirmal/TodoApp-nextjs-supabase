@@ -1,0 +1,48 @@
+-- admin, emp, mod
+
+create table employees (
+  id uuid references auth.users not null,
+  username text unique,
+  userrole text not null,
+  avatarUrl text,
+  joinedAt timestamp with time zone default timezone('utc'::text, now()) not null,
+  primary key (id),
+  unique(username)
+);
+
+alter table employees enable row level security;
+
+create policy "Employees are viewable by user only."
+  on employees for select
+  using ( auth.uid() = id );
+
+create policy "Employees can insert their own profile."
+  on employees for insert
+  with check ( auth.uid() = id and userrole = 'admin');
+
+create policy "Employees can update own profile."
+  on employees for update
+  using ( auth.uid() = id );
+
+begin;
+  drop publication if exists supabase_realtime;
+  create publication supabase_realtime;
+commit;
+alter publication supabase_realtime add table employees;
+
+-- Set up Storage!
+insert into storage.buckets (id, name)
+values ('Employees-avatars', 'Employees-avatars');
+
+create policy "Employees-avatars images are publicly accessible."
+  on storage.objects for select
+  using ( bucket_id = 'Employees-avatars');
+
+create policy "Employees-avatars can upload an avatar."
+  on storage.objects for insert
+  with check ( bucket_id = 'Employees-avatars' );
+
+create policy "Employees-avatars can update an avatar."
+  on storage.objects for update
+  with check ( bucket_id = 'Employees-avatars' );
+
